@@ -10,3 +10,4 @@ getrandom = { workspace = true }
 bech32 = { workspace = true }
 thiserror = { workspace = true }
 vault-shared = { workspace = true }
+pallas-addresses = { workspace = true }

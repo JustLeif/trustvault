@@ -63,6 +63,14 @@ impl Ed25519Bip32PrivateKey {
 mod test {
 
     use super::*;
+    use pallas_addresses::Network;
+    use vault_shared::{
+        addresses::{base_address, reward_address},
+        ed25519_bip32::HARDENED,
+    };
+
+    // Using this bech32 value, test against yoroi wallet derivations.
+    const KNOWN_XPRV_BECH32: &'static str = "xprv18zmg0nvgtcmzw5rrt432v25zle3uz9p5j7g58xa8revmrc6vjay5806rwm6yfm9k7pjpmxk4qzf6wk5p5m02u7s0m7u7fqaa06njhp3hpycq2243077u8vhca6ndkcyqady6rre9kzpnwz53kswyywnfdyhvjyte";
 
     #[test]
     fn bech32_roundtrip() {
@@ -75,9 +83,73 @@ mod test {
 
     #[test]
     fn test_derivation() {
-        let root =
-            Ed25519Bip32PrivateKey::from_bech32("valid_xprv_bech32_here".to_string()).unwrap();
+        let root = Ed25519Bip32PrivateKey::from_bech32(KNOWN_XPRV_BECH32.to_string()).unwrap();
 
-        let child = root.derive(0x8000_0000);
+        const EXTERNAL_MAINNET_ADDRESS_INDEX_0: &'static str = "addr1qxg6d6226c85ldttenpps5wnl8pdk3m4x0h05kpn66znxs8v2eqdycpdc6kdyhfg7rncgj5wakasqjwsu6qghle2cx0qcrvtvu";
+        const EXTERNAL_MAINNET_ADDRESS_INDEX_1: &'static str = "addr1qyrefsup6w6adj9t26k4wnzee4dmfsk55ta5zfctun2akf0v2eqdycpdc6kdyhfg7rncgj5wakasqjwsu6qghle2cx0qunanxx";
+        const INTERNAL_MAINNET_ADDRESS_INDEX_0: &'static str = "addr1q9gax5u3wv7v7cjdnrxrd3eqp7mplj9yc06lk9dam6ln3w0v2eqdycpdc6kdyhfg7rncgj5wakasqjwsu6qghle2cx0qtgzzwv";
+        const REWARD_MAINNET_ADDRESS_INDEX_0: &'static str =
+            "stake1u8k9vsxjvqkudtxjt550peuyf28wmwcqf8gwdqytlu4vr8sxsw76h";
+
+        let external_xpub_index_0 = root
+            .derive(1852 | HARDENED)
+            .derive(1815 | HARDENED)
+            .derive(0 | HARDENED)
+            .derive(0)
+            .derive(0)
+            .to_public();
+        let external_xpub_index_1 = root
+            .derive(1852 | HARDENED)
+            .derive(1815 | HARDENED)
+            .derive(0 | HARDENED)
+            .derive(0)
+            .derive(1)
+            .to_public();
+        let internal_xpub_index_0 = root
+            .derive(1852 | HARDENED)
+            .derive(1815 | HARDENED)
+            .derive(0 | HARDENED)
+            .derive(1)
+            .derive(0)
+            .to_public();
+        let reward_xpub_index_0 = root
+            .derive(1852 | HARDENED)
+            .derive(1815 | HARDENED)
+            .derive(0 | HARDENED)
+            .derive(2)
+            .derive(0)
+            .to_public();
+
+        assert_eq!(
+            EXTERNAL_MAINNET_ADDRESS_INDEX_0,
+            base_address(
+                Network::Mainnet,
+                &external_xpub_index_0,
+                Some(&reward_xpub_index_0)
+            )
+            .unwrap()
+        );
+        assert_eq!(
+            EXTERNAL_MAINNET_ADDRESS_INDEX_1,
+            base_address(
+                Network::Mainnet,
+                &external_xpub_index_1,
+                Some(&reward_xpub_index_0)
+            )
+            .unwrap()
+        );
+        assert_eq!(
+            INTERNAL_MAINNET_ADDRESS_INDEX_0,
+            base_address(
+                Network::Mainnet,
+                &internal_xpub_index_0,
+                Some(&reward_xpub_index_0)
+            )
+            .unwrap()
+        );
+        assert_eq!(
+            REWARD_MAINNET_ADDRESS_INDEX_0,
+            reward_address(Network::Mainnet, &reward_xpub_index_0).unwrap()
+        );
     }
 }

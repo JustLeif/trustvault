@@ -8,3 +8,4 @@ pallas-crypto = { workspace = true }
 ed25519-bip32 = { workspace = true }
 bech32 = { workspace = true }
 thiserror = { workspace = true }
+pallas-addresses = { workspace = true }
