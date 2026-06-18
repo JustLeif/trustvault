@@ -1,0 +1,17 @@
+[workspace]
+members = ["apps/enclave", "lib/vault-shared"]
+resolver = "3"
+
+[workspace.package]
+edition = "2024"
+
+[workspace.dependencies]
+tokio-vsock = "0.7"
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+pallas-crypto = "1.1.0"
+ed25519-bip32 = "0.4.2"
+getrandom = { version = "0.4", features = ["sys_rng"] }
+bech32 = "0.12.0"
+thiserror = "2.0.18"
+vault-shared = { path = "lib/vault-shared" }

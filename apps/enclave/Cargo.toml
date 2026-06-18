@@ -1,0 +1,12 @@
+[package]
+name = "enclave"
+version = "0.1.0"
+edition.workspace = true
+
+[dependencies]
+pallas-crypto = { workspace = true }
+ed25519-bip32 = { workspace = true }
+getrandom = { workspace = true }
+bech32 = { workspace = true }
+thiserror = { workspace = true }
+vault-shared = { workspace = true }
