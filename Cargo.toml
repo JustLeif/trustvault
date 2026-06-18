@@ -18,4 +18,5 @@ blake2 = "0.10.6"
 pallas-addresses = "1.1.0"
 base64 = "0.22"
 serde_cbor = "0.11.2"
+aes-gcm = "0.10.3"
 vault-shared = { path = "lib/vault-shared" }

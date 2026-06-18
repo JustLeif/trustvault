@@ -3,8 +3,10 @@ use std::error::Error;
 use tokio_vsock::{VMADDR_CID_ANY, VsockAddr, VsockListener};
 use vault_shared::vsock::{VsockEnclaveResult, VsockHostRequest, VsockTransport};
 
+pub mod aes256gcm;
 pub mod ed25519_bip32;
 pub mod kmstool;
+pub mod router;
 
 #[tokio::main(flavor = "multi_thread")]
 async fn main() -> Result<(), Box<dyn Error>> {

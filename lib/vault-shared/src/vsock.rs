@@ -1,4 +1,3 @@
-use crate::kmstool::KmsToolError;
 use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio_vsock::VsockStream;
@@ -67,36 +66,6 @@ pub enum VsockEnclaveResponse {
         aws_region: String,
         kms_key_id: String,
     },
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum Aes256GcmError {
-    #[error("aes256gcm key was invalid (not 32 bytes)")]
-    InvalidLength,
-    #[error("encryption operation failed")]
-    EncryptionFailed,
-    #[error("decryption operation failed")]
-    DecryptionFailed,
-}
-
-#[derive(Debug, thiserror::Error, Serialize, Deserialize)]
-pub enum VsockEnclaveCardanoCreateWalletError {
-    #[error("{0}")]
-    KmsToolError(String),
-    #[error("{0}")]
-    Aes256GcmError(String),
-}
-
-impl From<KmsToolError> for VsockEnclaveCardanoCreateWalletError {
-    fn from(e: KmsToolError) -> Self {
-        VsockEnclaveCardanoCreateWalletError::KmsToolError(e.to_string())
-    }
-}
-
-impl From<Aes256GcmError> for VsockEnclaveCardanoCreateWalletError {
-    fn from(e: Aes256GcmError) -> Self {
-        VsockEnclaveCardanoCreateWalletError::Aes256GcmError(e.to_string())
-    }
 }
 
 #[derive(Debug, thiserror::Error)]
