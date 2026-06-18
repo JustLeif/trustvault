@@ -1,5 +1,5 @@
 [package]
-name = "vault_shared"
+name = "vault-shared"
 version = "0.1.0"
 edition.workspace = true
 

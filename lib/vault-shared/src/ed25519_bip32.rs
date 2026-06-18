@@ -3,6 +3,8 @@ use ed25519_bip32::{self, XPub};
 use pallas_crypto::key::ed25519::{self};
 use thiserror::Error;
 
+pub const HARDENED: u32 = 0x8000_0000;
+
 #[derive(Error, Debug)]
 pub enum FromBech32Error {
     #[error("Unable to decode bech32: {0}")]

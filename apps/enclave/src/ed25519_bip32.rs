@@ -58,10 +58,11 @@ impl Ed25519Bip32PrivateKey {
         Self::from_bytes(bytes).map_err(FromBech32Error::InvalidPrivateKey)
     }
 }
+
 #[cfg(test)]
 mod test {
 
-    use super::Ed25519Bip32PrivateKey;
+    use super::*;
 
     #[test]
     fn bech32_roundtrip() {
@@ -70,5 +71,13 @@ mod test {
         let decoded_xprv = Ed25519Bip32PrivateKey::from_bech32(xprv_bech32).unwrap();
 
         assert_eq!(xprv, decoded_xprv);
+    }
+
+    #[test]
+    fn test_derivation() {
+        let root =
+            Ed25519Bip32PrivateKey::from_bech32("valid_xprv_bech32_here".to_string()).unwrap();
+
+        let child = root.derive(0x8000_0000);
     }
 }
