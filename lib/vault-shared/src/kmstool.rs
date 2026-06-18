@@ -2,9 +2,7 @@
 pub enum KmsToolError {
     #[error("failed to Command::new().output()")]
     Io(#[from] std::io::Error),
-    #[error(
-        "failed to parse command output, status: {status}. stdout: {stdout}. stderr: {stderr}."
-    )]
+    #[error("failed to parse command output, status: {status}, stdout: {stdout}, stderr: {stderr}")]
     StdoutParse {
         stdout: String,
         status: String,

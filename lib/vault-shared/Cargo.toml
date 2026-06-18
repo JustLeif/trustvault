@@ -10,3 +10,7 @@ bech32 = { workspace = true }
 thiserror = { workspace = true }
 pallas-addresses = { workspace = true }
 base64 = { workspace = true }
+serde = { workspace = true }
+serde_cbor = { workspace = true }
+tokio = { workspace = true }
+tokio-vsock = { workspace = true }
