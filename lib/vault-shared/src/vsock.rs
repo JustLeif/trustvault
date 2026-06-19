@@ -65,6 +65,7 @@ pub enum VsockEnclaveResponse {
         kms_ciphertext: Vec<u8>,
         aws_region: String,
         kms_key_id: String,
+        account_index_0_xpub_bech32: String,
     },
 }
 

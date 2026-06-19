@@ -2,7 +2,10 @@ use crate::{
     aes256gcm::encrypt_private_key_aes256gcm, ed25519_bip32::Ed25519Bip32PrivateKey,
     kmstool::genkey,
 };
-use vault_shared::vsock::{VsockEnclaveResponse, VsockEnclaveResult, VsockHostRequest};
+use vault_shared::{
+    ed25519_bip32::HARDENED,
+    vsock::{VsockEnclaveResponse, VsockEnclaveResult, VsockHostRequest},
+};
 
 pub async fn handle_host_request(request: VsockHostRequest) -> VsockEnclaveResult {
     match request {
@@ -19,6 +22,15 @@ pub async fn handle_host_request(request: VsockHostRequest) -> VsockEnclaveResul
             let mut nonce = [0u8; 12];
             getrandom::fill(&mut nonce)
                 .map_err(|e| format!("failed to generate nonce with error: {e}"))?;
+            let account_index_0_xpub_bech32 = root_xprv
+                .derive(1852 | HARDENED)
+                .derive(1815 | HARDENED)
+                .derive(0 | HARDENED)
+                .to_public()
+                .to_bech32()
+                .map_err(|e| {
+                    format!("failed to encode index 0 account xpub into bech32 with error: {e}")
+                })?;
 
             let [encryption_key_ciphertext, encryption_key_plaintext] = genkey(
                 &aws_region,
@@ -44,6 +56,7 @@ pub async fn handle_host_request(request: VsockHostRequest) -> VsockEnclaveResul
                 kms_ciphertext: encryption_key_ciphertext,
                 aws_region: aws_region,
                 kms_key_id: kms_key_id,
+                account_index_0_xpub_bech32: account_index_0_xpub_bech32,
             });
         }
         VsockHostRequest::CardanoSignTransaction {
