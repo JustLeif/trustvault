@@ -57,8 +57,7 @@ pub enum VsockHostRequest {
         kms_key_id: String,
     },
     CardanoSignTransaction {
-        tx_cbor: Vec<u8>,
-        partial_sign: bool,
+        tx_hash: pallas_crypto::hash::Hash<32>,
         aws_region: String,
         aws_access_key_id: String,
         aws_secret_access_key: String,
@@ -67,6 +66,9 @@ pub enum VsockHostRequest {
         aes_gcm_nonce: [u8; 12],
         encrypted_secret_key: Vec<u8>,
         kms_ciphertext: Vec<u8>,
+        cip1852_account: u32,
+        cip1852_role: u32,
+        cip1852_index: u32,
     },
 }
 
@@ -74,13 +76,17 @@ pub type VsockEnclaveResult = Result<VsockEnclaveResponse, String>;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum VsockEnclaveResponse {
-    VsockEnclaveCardanoCreateWalletData {
+    CardanoCreateWalletData {
         encrypted_secret_key: Vec<u8>,
         aes_gcm_nonce: [u8; 12],
         kms_ciphertext: Vec<u8>,
         aws_region: String,
         kms_key_id: String,
         account_index_0_xpub_bech32: String,
+    },
+    CardanoSignTransactionData {
+        public_key: Vec<u8>,
+        signature: Vec<u8>,
     },
 }
 
