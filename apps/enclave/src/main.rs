@@ -12,23 +12,23 @@ pub mod router;
 
 #[tokio::main(flavor = "multi_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let port = std::env::var("PORT")
-        .expect("PORT is not set")
+    let enclave_port = std::env::var("ENCLAVE_PORT")
+        .expect("ENCLAVE_PORT is not set")
         .parse::<u32>()
-        .expect("PORT must be a u32");
+        .expect("ENCLAVE_PORT must be a u32");
 
     let listener = {
         #[cfg(feature = "vsock")]
         {
-            VsockListener::bind(VsockAddr::new(VMADDR_CID_ANY, port))?
+            VsockListener::bind(VsockAddr::new(VMADDR_CID_ANY, enclave_port))?
         }
         #[cfg(not(feature = "vsock"))]
         {
-            let tcp_port = u16::try_from(port).expect("TCP port must fit in u16");
+            let tcp_port = u16::try_from(enclave_port).expect("TCP port must fit in u16");
             TcpListener::bind(("127.0.0.1", tcp_port)).await?
         }
     };
-    println!("enclave server listening on port {port}");
+    println!("enclave server listening on port {enclave_port}");
 
     loop {
         let (stream, peer_addr) = listener.accept().await?;
