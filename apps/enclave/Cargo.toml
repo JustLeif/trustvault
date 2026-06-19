@@ -5,6 +5,7 @@ edition.workspace = true
 
 [features]
 vsock = ["tokio-vsock"]
+kms = []
 
 [dependencies]
 pallas-crypto = { workspace = true }

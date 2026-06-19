@@ -1,4 +1,8 @@
+#[cfg(not(feature = "kms"))]
+use aes_gcm::{Aes256Gcm, KeyInit, Nonce, aead::Aead};
+#[cfg(any(feature = "kms", test))]
 use base64::prelude::*;
+#[cfg(feature = "kms")]
 use tokio::process::Command;
 use vault_shared::kmstool::KmsToolError;
 
@@ -7,6 +11,10 @@ pub struct KmsGenkeyOutput {
     pub plaintext: Vec<u8>,
 }
 
+#[cfg(not(feature = "kms"))]
+const MOCK_KMS_MASTER_KEY: [u8; 32] = [7u8; 32];
+
+#[cfg(feature = "kms")]
 pub async fn genkey(
     region: &str,
     access_key_id: &str,
@@ -38,6 +46,34 @@ pub async fn genkey(
     return Ok(parsed);
 }
 
+#[cfg(not(feature = "kms"))]
+pub async fn genkey(
+    _region: &str,
+    _access_key_id: &str,
+    _secret_access_key: &str,
+    _session_token: &str,
+    _proxy_port: &str,
+    _key_id: &str,
+    _key_spec: &str,
+) -> Result<[Vec<u8>; 2], KmsToolError> {
+    let mut plaintext = vec![0u8; 32];
+    getrandom::fill(&mut plaintext).expect("failed to genrandom::fill()");
+    let mut nonce = [0u8; 12];
+    getrandom::fill(&mut nonce).expect("failed to genrandom::fill()");
+
+    let cipher = aes_gcm::Aes256Gcm::new_from_slice(&MOCK_KMS_MASTER_KEY)
+        .expect("failed to Aes256Gcm::new_from_slice()");
+    let encrypted_key = cipher
+        .encrypt(Nonce::from_slice(&nonce), plaintext.as_slice())
+        .expect("failed to encrypt mock data key");
+
+    let mut ciphertext = Vec::with_capacity(12 + encrypted_key.len());
+    ciphertext.extend_from_slice(&nonce);
+    ciphertext.extend_from_slice(&encrypted_key);
+    return Ok([ciphertext, plaintext]);
+}
+
+#[cfg(feature = "kms")]
 pub async fn decrypt(
     region: &str,
     access_key_id: &str,
@@ -48,7 +84,7 @@ pub async fn decrypt(
 ) -> Result<[Vec<u8>; 1], KmsToolError> {
     let ciphertext_base64 = BASE64_STANDARD.encode(ciphertext);
     let result = Command::new("kmstool_enclave_cli")
-        .arg("genkey")
+        .arg("decrypt")
         .arg("--region")
         .arg(region)
         .arg("--aws-access-key-id")
@@ -67,6 +103,32 @@ pub async fn decrypt(
     return Ok(parsed);
 }
 
+#[cfg(not(feature = "kms"))]
+pub async fn decrypt(
+    _region: &str,
+    _access_key_id: &str,
+    _secret_access_key: &str,
+    _session_token: &str,
+    _proxy_port: &str,
+    ciphertext: &[u8],
+) -> Result<[Vec<u8>; 1], KmsToolError> {
+    if ciphertext.len() < 12 {
+        panic!("mock kms ciphertext is too short");
+    }
+
+    let nonce = &ciphertext[..12];
+    let encrypted_key = &ciphertext[12..];
+
+    let cipher =
+        Aes256Gcm::new_from_slice(&MOCK_KMS_MASTER_KEY).expect("invalid mock KMS master key");
+
+    let plaintext = cipher
+        .decrypt(Nonce::from_slice(nonce), encrypted_key)
+        .expect("failed to decrypt mock data key");
+    return Ok([plaintext]);
+}
+
+#[cfg(any(feature = "kms", test))]
 fn parse_output<const N: usize>(
     ordered_line_prefixes: [&str; N],
     output: &std::process::Output,
