@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio_vsock::VsockStream;
 
+pub const VSOCK_MAX_MESSAGE_LEN: usize = 1024 * 1024;
+
 pub struct VsockTransport {
     stream: VsockStream,
 }
@@ -15,6 +17,12 @@ impl VsockTransport {
         let mut len_bytes = [0u8; 4];
         self.stream.read_exact(&mut len_bytes).await?;
         let len = u32::from_be_bytes(len_bytes) as usize;
+        if len > VSOCK_MAX_MESSAGE_LEN {
+            return Err(VsockReceiveError::MessageTooLarge {
+                len,
+                max: VSOCK_MAX_MESSAGE_LEN,
+            });
+        }
         let mut buf = vec![0u8; len];
         self.stream.read_exact(&mut buf).await?;
         let message: T = serde_cbor::from_slice(&buf)?;
@@ -23,7 +31,14 @@ impl VsockTransport {
 
     pub async fn send<T: Serialize>(&mut self, message: &T) -> Result<(), VsockSendError> {
         let cbor_bytes = serde_cbor::to_vec(message)?;
-        let len = cbor_bytes.len() as u32;
+        let len = cbor_bytes.len();
+        if len > VSOCK_MAX_MESSAGE_LEN {
+            return Err(VsockSendError::MessageTooLarge {
+                len,
+                max: VSOCK_MAX_MESSAGE_LEN,
+            });
+        }
+        let len = len as u32;
         self.stream.write_all(&len.to_be_bytes()).await?;
         self.stream.write_all(&cbor_bytes).await?;
         self.stream.flush().await?;
@@ -73,6 +88,8 @@ pub enum VsockEnclaveResponse {
 pub enum VsockReceiveError {
     #[error("failed to stream.read_exact()")]
     Io(#[from] std::io::Error),
+    #[error("vsock message too large: {len} bytes exceeds max {max} bytes")]
+    MessageTooLarge { len: usize, max: usize },
     #[error("failed to deserialize cbor")]
     Deserialization(#[from] serde_cbor::Error),
 }
@@ -81,6 +98,8 @@ pub enum VsockReceiveError {
 pub enum VsockSendError {
     #[error("failed to stream.write_all()")]
     Io(#[from] std::io::Error),
+    #[error("vsock message too large: {len} bytes exceeds max {max} bytes")]
+    MessageTooLarge { len: usize, max: usize },
     #[error("failed to serialize cbor")]
     Serialization(#[from] serde_cbor::Error),
 }
