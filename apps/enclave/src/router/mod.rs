@@ -7,13 +7,13 @@ use crate::{
 };
 use vault_shared::{
     ed25519_bip32::HARDENED,
-    vsock::{VsockEnclaveResponse, VsockEnclaveResult, VsockHostRequest},
+    transport::{EnclaveResponse, EnclaveResult, HostRequest},
 };
 
 /// TODO: inject a config object to mock external calls to perform E2E tests against this function.
-pub async fn handle_host_request(request: VsockHostRequest) -> VsockEnclaveResult {
+pub async fn handle_host_request(request: HostRequest) -> EnclaveResult {
     match request {
-        VsockHostRequest::CardanoCreateWallet {
+        HostRequest::CardanoCreateWallet {
             aws_region,
             aws_access_key_id,
             aws_secret_access_key,
@@ -60,7 +60,7 @@ pub async fn handle_host_request(request: VsockHostRequest) -> VsockEnclaveResul
             )
             .await;
 
-            return Ok(VsockEnclaveResponse::CardanoCreateWalletData {
+            return Ok(EnclaveResponse::CardanoCreateWalletData {
                 encrypted_secret_key: private_key_ciphertext,
                 aes_gcm_nonce: nonce,
                 kms_ciphertext: encryption_key_ciphertext,
@@ -69,7 +69,7 @@ pub async fn handle_host_request(request: VsockHostRequest) -> VsockEnclaveResul
                 account_index_0_xpub_bech32: account_index_0_xpub_bech32,
             });
         }
-        VsockHostRequest::CardanoSignTransaction {
+        HostRequest::CardanoSignTransaction {
             tx_hash,
             aws_region,
             aws_access_key_id,
@@ -138,7 +138,7 @@ pub async fn handle_host_request(request: VsockHostRequest) -> VsockEnclaveResul
             let signer = child_xprv.to_ed25519_secret_key_extended();
             let signature = signer.sign(tx_hash.as_ref());
 
-            Ok(VsockEnclaveResponse::CardanoSignTransactionData {
+            Ok(EnclaveResponse::CardanoSignTransactionData {
                 public_key: child_xpub.as_bytes().to_vec(),
                 signature: signature.as_ref().to_vec(),
             })

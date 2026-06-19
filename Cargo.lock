@@ -765,7 +765,6 @@ dependencies = [
  "serde_cbor",
  "thiserror",
  "tokio",
- "tokio-vsock",
 ]
 
 [[package]]

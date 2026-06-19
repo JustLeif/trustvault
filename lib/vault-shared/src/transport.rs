@@ -1,15 +1,17 @@
 use serde::{Deserialize, Serialize};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio_vsock::VsockStream;
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
 pub const VSOCK_MAX_MESSAGE_LEN: usize = 1024 * 1024;
 
-pub struct VsockTransport {
-    stream: VsockStream,
+pub struct CborTransport<S> {
+    stream: S,
 }
 
-impl VsockTransport {
-    pub fn new(stream: VsockStream) -> Self {
+impl<S> CborTransport<S>
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+{
+    pub fn new(stream: S) -> Self {
         return Self { stream };
     }
 
@@ -47,7 +49,7 @@ impl VsockTransport {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub enum VsockHostRequest {
+pub enum HostRequest {
     CardanoCreateWallet {
         aws_region: String,
         aws_access_key_id: String,
@@ -72,10 +74,10 @@ pub enum VsockHostRequest {
     },
 }
 
-pub type VsockEnclaveResult = Result<VsockEnclaveResponse, String>;
+pub type EnclaveResult = Result<EnclaveResponse, String>;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub enum VsockEnclaveResponse {
+pub enum EnclaveResponse {
     CardanoCreateWalletData {
         encrypted_secret_key: Vec<u8>,
         aes_gcm_nonce: [u8; 12],
