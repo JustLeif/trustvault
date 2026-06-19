@@ -39,6 +39,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             match transport.receive::<HostRequest>().await {
                 Ok(request) => {
                     println!("accepted request from {peer_addr:?}: {request:?}");
+                    let result = crate::router::handle_host_request(request).await;
+                    if let Err(err) = transport.send::<EnclaveResult>(&result).await {
+                        eprintln!("failed to send enclave result: {err}");
+                    }
                 }
                 Err(err) => {
                     let result = transport.send::<EnclaveResult>(&Err(err.to_string())).await;
