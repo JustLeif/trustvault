@@ -9,8 +9,7 @@
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
-    "preview": "vite preview",
-    "generate-routes": "tsr generate"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.9",
