@@ -1,10 +1,13 @@
+.PHONY: dev
+
 ENCLAVE_PORT ?= 5000
+HOST_PORT ?= 50051
 
 dev:
-	$(MAKE) -j2 enclave-dev host-dev
-
-enclave-dev:
-	ENCLAVE_PORT=$(ENCLAVE_PORT) cargo watch -x "run -p enclave"
-
-host-dev:
-	ENCLAVE_PORT=$(ENCLAVE_PORT) cargo watch -x "run -p host"
+	@set -e; \
+	trap 'kill 0' INT TERM EXIT; \
+	ENCLAVE_PORT=$(ENCLAVE_PORT) cargo watch -x "run -p enclave" & \
+	ENCLAVE_PID=$$!; \
+	ENCLAVE_PORT=$(ENCLAVE_PORT) HOST_PORT=$(HOST_PORT) cargo watch -x "run -p host" & \
+	HOST_PID=$$!; \
+	wait $$ENCLAVE_PID $$HOST_PID

@@ -1,0 +1,19 @@
+[package]
+name = "host"
+version = "0.1.0"
+edition.workspace = true
+
+[features]
+vsock = ["tokio-vsock"]
+
+[dependencies]
+prost = { workspace = true }
+prost-types = { workspace = true }
+tokio = { workspace = true }
+tonic = { workspace = true }
+tonic-prost = { workspace = true }
+tokio-vsock = { workspace = true, optional = true }
+vault-shared = { workspace = true }
+
+[build-dependencies]
+tonic-prost-build = { workspace = true }

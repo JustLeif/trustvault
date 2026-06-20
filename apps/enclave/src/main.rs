@@ -14,18 +14,17 @@ pub mod router;
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let enclave_port = std::env::var("ENCLAVE_PORT")
         .expect("ENCLAVE_PORT is not set")
-        .parse::<u32>()
-        .expect("ENCLAVE_PORT must be a u32");
+        .parse::<u16>()
+        .expect("ENCLAVE_PORT must be a u16");
 
     let listener = {
         #[cfg(feature = "vsock")]
         {
-            VsockListener::bind(VsockAddr::new(VMADDR_CID_ANY, enclave_port))?
+            VsockListener::bind(VsockAddr::new(VMADDR_CID_ANY, enclave_port.into()))?
         }
         #[cfg(not(feature = "vsock"))]
         {
-            let tcp_port = u16::try_from(enclave_port).expect("TCP port must fit in u16");
-            TcpListener::bind(("127.0.0.1", tcp_port)).await?
+            TcpListener::bind(("127.0.0.1", enclave_port)).await?
         }
     };
     println!("enclave server listening on port {enclave_port}");

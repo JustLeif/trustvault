@@ -1,0 +1,8 @@
+syntax = "proto3";
+package trustvault;
+
+import "google/protobuf/empty.proto";
+
+service TrustvaultService {
+  rpc CreateCardanoWallet(google.protobuf.Empty) returns (google.protobuf.Empty);
+}
