@@ -10,4 +10,6 @@ dev:
 	ENCLAVE_PID=$$!; \
 	ENCLAVE_PORT=$(ENCLAVE_PORT) HOST_PORT=$(HOST_PORT) cargo watch -x "run -p host" & \
 	HOST_PID=$$!; \
-	wait $$ENCLAVE_PID $$HOST_PID
+	npm run dev:web & \
+	WEB_PID=$$!; \
+	wait $$ENCLAVE_PID $$HOST_PID $$WEB_PID
