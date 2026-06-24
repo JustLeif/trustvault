@@ -14,6 +14,7 @@ tonic = { workspace = true }
 tonic-prost = { workspace = true }
 tokio-vsock = { workspace = true, optional = true }
 vault-shared = { workspace = true }
+webauthn-rs = { workspace = true }
 
 [build-dependencies]
 tonic-prost-build = { workspace = true }

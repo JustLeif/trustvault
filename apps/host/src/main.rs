@@ -9,6 +9,7 @@ pub mod trustvault_proto {
     tonic::include_proto!("trustvault");
 }
 pub mod enclave;
+pub mod webauthn;
 
 #[tokio::main(flavor = "multi_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -20,6 +21,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .expect("HOST_PORT is not set")
         .parse::<u16>()
         .expect("HOST_PORT must be a u16");
+    let setup_key = std::env::var("SETUP_KEY").expect("SETUP_KEY is not set");
 
     let result = enclave::send_and_receive_message(
         enclave_port,
